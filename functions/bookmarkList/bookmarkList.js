@@ -1,27 +1,26 @@
 const { ApolloServer, gql } = require('apollo-server-lambda')
-var faunadb = require('faunadb'),
+const faunadb = require('faunadb'),
   q = faunadb.query;
 
 const typeDefs = gql`
   type Query {
-    bookmarks: [Bookmark]
+    bookmarks: [bookmark]
   }
   type Bookmark {
     id: ID!
     title: String!
     url: String!
   }
-  type Mutation {
-    addBookmark(title: String!, url: String!): Bookmark
+  type Mutations {
+    addBookmark(title:String!,url:String!):Bookmark
   }
 `
-
 const resolvers = {
   Query: {
     bookmarks: async (root, args, context) => {
       try {
-        var adminClient = new faunadb.Client({ secret: 'fnAD3k5_3EACB6gCBsRr3R3wpEKT_uo1PpVFackm' });
-        const result = await adminClient.query(
+        var admin = new faunadb.Client({ secret: 'fnAD-ThdDSACDVwG36mpIUGkSCMI281cM90drbwf' });
+        const result = await admin.query(
           q.Map(
             q.Paginate(q.Match(q.Index('url'))),
             q.Lambda(x => q.Get(x))
@@ -30,11 +29,11 @@ const resolvers = {
         console.log(result.data)
 
         return result.data.map(d => {
-          return {
-            id: d.ts,
-            title: d.data.title,
-            url: d.data.url
-          }
+          return [{
+            id: "1",
+            title: "aman",
+            url: "abc.com"
+          }]
         })
 
       } catch (err) {
@@ -46,9 +45,8 @@ const resolvers = {
     addBookmark: async (_, { title, url }) => {
       console.log(title, url)
       try {
-        var adminClient = new faunadb.Client({ secret: 'fnAD3k5_3EACB6gCBsRr3R3wpEKT_uo1PpVFackm' });
-
-        const result = await adminClient.query(
+        const admin = new faunadb.Client({ secret: 'fnAD-ThdDSACDVwG36mpIUGkSCMI281cM90drbwf' });
+        const result = await admin.query(
           q.Create(
             q.Collection('bookmarks'),
             {
@@ -72,5 +70,4 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
 })
-
 exports.handler = server.createHandler()
